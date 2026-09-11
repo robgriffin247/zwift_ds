@@ -7,9 +7,20 @@ from dlt.extract import DltResource
 BASE_URL = "https://api.zwiftracing.app/api/public/"
 HEADER = {"Authorization": os.getenv("ZWIFT_RACING_API_KEY")}
 
+dest = (
+    dlt.destinations.motherduck(
+        credentials={
+            "database": "zwift_ds_prod",
+            "motherduck_token": os.environ["MOTHERDUCK_TOKEN"],
+        }
+    )
+    if os.getenv("TARGET") == "prod"
+    else dlt.destinations.duckdb(f"data/zwift_ds_dev.duckdb")
+)
+
 PIPELINE = dlt.pipeline(
     pipeline_name=f"zwift_ds_pipeline",
-    destination=dlt.destinations.duckdb(f"data/zwift_ds_{os.getenv('TARGET')}.duckdb"),
+    destination=dest,
     dataset_name="raw_zwift_racing",
 )
 
@@ -72,7 +83,7 @@ def run_pipeline(resource: DltResource) -> None:
 
 
 if __name__ == "__main__":
-    OFFLINE = False
+    OFFLINE = True
 
     # os.makedirs("data/raw", exist_ok=True)
 
@@ -91,3 +102,4 @@ if __name__ == "__main__":
     print(run_pipeline(get_rider(4598636, use_json=OFFLINE)))
     print(run_pipeline(get_riders([4598636], use_json=OFFLINE)))
     print(run_pipeline(get_club_riders(20650, use_json=OFFLINE)))
+    # print(run_pipeline(get_club_riders(2707)))

@@ -6,3 +6,10 @@ zwift_ds:
       path: data/zwift_ds_dev.duckdb
       schema: staging
       threads: 2
+
+    prod:
+      type: duckdb
+      path: data/zwift_ds_dev.duckdb
+      path: "md:zwift_ds_prod?motherduck_token={{ env_var('MOTHERDUCK_TOKEN') }}"
+      schema: staging
+      threads: 2
