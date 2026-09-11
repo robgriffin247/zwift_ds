@@ -1,0 +1,23 @@
+name: 'zwift_ds'
+version: '1.0.0'
+
+profile: 'zwift_ds'
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  zwift_ds:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+    core:
+      +schema: core
+      +materialized: table
