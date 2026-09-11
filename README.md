@@ -10,10 +10,10 @@ This platform collects data from the Zwift e-cycling training & racing platform.
 - [GitHub](https://github.com/users/robgriffin247/projects/9) for project management
 - ``uv`` for dependency management
 - ``direnv`` for environment management
-- DuckDB/MotherDuck for data storage/warehousing
+- DuckDB for data storage/warehousing
 - ``dlt`` for ingestion (EL of ELT)
-<!--
 - ``dbt`` for transformation (T of ELT)
+<!--
 - Modal for scheduling in production
 - Dagster for orchestration in development
 -->

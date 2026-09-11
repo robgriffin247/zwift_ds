@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: raw_zwift_racing
+    description: Raw ZwiftRacing.app API data
+    schema: raw_zwift_racing
+    tables:
+      - name: riders
+        description: Rider details. One row per rider.
+        columns:
+          - name: rider_id
+            description: (PRIMARY KEY) Unique rider identifier.
+            data_tests:
+              - not_null
+              - unique

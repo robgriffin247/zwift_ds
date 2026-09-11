@@ -1,0 +1,8 @@
+zwift_ds:
+  target: "{{ env_var('TARGET', 'dev') }}"
+  outputs:
+    dev:
+      type: duckdb
+      path: data/zwift_ds_dev.duckdb
+      schema: staging
+      threads: 2
