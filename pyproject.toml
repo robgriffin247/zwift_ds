@@ -2,4 +2,8 @@
 name = "zwift-ds"
 version = "0.1.0"
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "black>=26.5.1",
+    "dlt[duckdb]>=1.30.0",
+    "httpx>=0.28.1",
+]

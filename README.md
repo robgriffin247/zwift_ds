@@ -4,13 +4,15 @@ This platform collects data from the Zwift e-cycling training & racing platform.
 
 ## DataStack
 
+![#](stack.png)
+
 - ``git`` and GitHub for version control
-- [GitHub]() for project management
+- [GitHub](https://github.com/users/robgriffin247/projects/9) for project management
 - ``uv`` for dependency management
 - ``direnv`` for environment management
-<!-- 
 - DuckDB/MotherDuck for data storage/warehousing
 - ``dlt`` for ingestion (EL of ELT)
+<!--
 - ``dbt`` for transformation (T of ELT)
 - Modal for scheduling in production
 - Dagster for orchestration in development
@@ -19,7 +21,7 @@ This platform collects data from the Zwift e-cycling training & racing platform.
 
 ## Dev Workflow
 
-The project is planned and tracked using GitHub Projects. 
+The project is planned and tracked using [GitHub Projects](https://github.com/users/robgriffin247/projects/9). 
 
 1. Issues are raised for features and fixes, and these automatically add tickets to the project
 1. Once the ticket is created, head to the project and:
