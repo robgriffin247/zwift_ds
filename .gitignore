@@ -1,7 +1,7 @@
 *.duckdb
 *Zone.Identifier
 data/
-
+_hidden/
 
 # dbt
 logs/
