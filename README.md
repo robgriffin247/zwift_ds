@@ -37,3 +37,9 @@ The project is planned and tracked using [GitHub Projects](https://github.com/us
     - review the code
     - request changes or merge the code to main
 1. Done: the code is merged to main
+
+
+## Modal
+
+- Apps are deployed to my own Modal workspace, in the zwift-ds environment
+- Set the environment with ``modal config set-environment zwift-ds``
