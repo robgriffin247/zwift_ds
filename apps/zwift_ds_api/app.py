@@ -27,6 +27,6 @@ async def root():
 @app.get("/{table}")
 async def get_table(table: CoreTables, _: None = Depends(verify_token)):
     with duckdb.connect(DATABASE) as con:
-        data = con.sql(f"select * from core.{table.value} where rider_id=4598636").pl()
+        data = con.sql(f"select * from core.{table.value}").pl()
 
     return {"content": data.to_dicts()}

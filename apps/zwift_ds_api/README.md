@@ -1,7 +1,7 @@
 - Start the API locally with 
 
 ```
-uv run uvicorn data_api.app:app --reload --port 8000
+uv run uvicorn apps.zwift_ds_api.app:app --reload --port 8000
 ```
 
 - Curl
