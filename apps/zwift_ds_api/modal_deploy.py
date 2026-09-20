@@ -1,14 +1,14 @@
 import modal
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).parent.parent
+PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 IMAGE = (
     modal.Image.debian_slim()
     .pip_install_from_pyproject(
         PROJECT_ROOT / "pyproject.toml",
     )
-    .add_local_python_source("data_api")
+    .add_local_python_source("apps.zwift_ds_api")
 )
 
 app = modal.App("zwift-ds-api", image=IMAGE)
@@ -19,6 +19,6 @@ app = modal.App("zwift-ds-api", image=IMAGE)
 )
 @modal.asgi_app()
 def fastapi_app():
-    from data_api.app import app as web_app
+    from apps.zwift_ds_api.app import app as web_app
 
     return web_app
