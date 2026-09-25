@@ -101,5 +101,5 @@ if __name__ == "__main__":
 
     print(run_pipeline(get_rider(4598636, use_json=OFFLINE)))
     print(run_pipeline(get_riders([4598636], use_json=OFFLINE)))
-    print(run_pipeline(get_club_riders(20650, use_json=OFFLINE)))
+    print(run_pipeline(get_club_riders(20650, use_json=False)))
     # print(run_pipeline(get_club_riders(2707)))
