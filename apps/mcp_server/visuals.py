@@ -1,11 +1,11 @@
-import json
+import io
+import re
 from typing import Literal
-import plotly.graph_objects as go
-from plotly.offline import get_plotlyjs_version
+import matplotlib
 
-# Pin the renderer to the plotly.js build that produced the spec. jsDelivr mirrors npm,
-# so every release resolves; cdnjs lags and has empty entries for some versions.
-PLOTLY_JS_URL = f"https://cdn.jsdelivr.net/npm/plotly.js-dist-min@{get_plotlyjs_version()}/plotly.min.js"
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FixedLocator, NullLocator
 
 POWER_DURATIONS = [5, 15, 30, 60, 120, 300, 1200]
 CATEGORICAL_PALETTE = [
@@ -13,45 +13,89 @@ CATEGORICAL_PALETTE = [
     "#e87ba4", "#008300", "#4a3aa7", "#e34948",
 ]
 POWER_METRICS = {
-    "wkg": {"column": "wkg_{}".format, "y_title": "Power (W/kg)", "value_format": ".2f", "unit": "W/kg"},
-    "watts": {"column": "watts_{}".format, "y_title": "Power (watts)", "value_format": ".0f", "unit": "W"},
+    "wkg": {"column": "wkg_{}".format, "y_title": "Power (W/kg)"},
+    "watts": {"column": "watts_{}".format, "y_title": "Power (W)"},
 }
+
+# Chart chrome, light theme: a PNG can't follow the viewer's theme, so it carries its own surface.
+SURFACE = "#fcfcfb"
+TEXT_PRIMARY = "#0b0b0b"
+TEXT_SECONDARY = "#52514e"
+TEXT_MUTED = "#898781"
+GRIDLINE = "#e1e0d9"
+BASELINE = "#c3c2b7"
+
+# Emoji and other symbols the chart font can't draw.
+UNRENDERABLE = re.compile(r"[\U00010000-\U0010ffff☀-➿️]")
 
 
 def format_duration(seconds: int) -> str:
-    return f"{seconds // 60:02d}:{seconds % 60:02d}"
+    return f"{seconds}s" if seconds < 60 else f"{seconds // 60}m"
 
 
-def figure_payload(fig: go.Figure) -> dict:
+def display_name(rider: str) -> str:
+    return " ".join(UNRENDERABLE.sub("", rider).split())
+
+
+def _style_axes(ax, title: str, y_title: str | None):
+    ax.set_facecolor(SURFACE)
+    ax.set_xscale("log")
+    ax.xaxis.set_major_locator(FixedLocator(POWER_DURATIONS))
+    ax.xaxis.set_minor_locator(NullLocator())
+    ax.set_xticklabels([format_duration(d) for d in POWER_DURATIONS])
+    ax.set_xlim(POWER_DURATIONS[0] * 0.85, POWER_DURATIONS[-1] * 1.15)
+    ax.grid(axis="y", color=GRIDLINE, linewidth=0.8)
+    ax.set_axisbelow(True)
+    for side in ("top", "right", "left"):
+        ax.spines[side].set_visible(False)
+    ax.spines["bottom"].set_color(BASELINE)
+    ax.tick_params(colors=TEXT_MUTED, labelsize=9, length=0, pad=6)
+    ax.set_title(title, loc="left", fontsize=12, fontweight="bold", color=TEXT_PRIMARY, pad=10)
+    if y_title:
+        ax.set_ylabel(y_title, color=TEXT_SECONDARY, fontsize=9)
+
+
+def power_curve(
+    groups: dict[str, list[dict]],
+    metric: Literal["wkg", "watts"] = "wkg",
+) -> bytes:
     """
-    Wrap a figure with the plotly.js script that must render it.
-    to_json handles numpy/decimal types that a plain to_dict would leave unserialisable.
-    """
-    return {"plotly_js_url": PLOTLY_JS_URL, "figure": json.loads(fig.to_json())}
-
-
-def power_curve(riders: list[dict], metric: Literal["wkg", "watts"] = "wkg") -> dict:
-    """
-    Build a power curve figure with one line per rider across POWER_DURATIONS.
-    Expects rows from core.riders; returns the figure_payload for it.
+    Render power curves as a PNG, one panel per group (e.g. per team) on a shared y-axis.
+    Each panel draws its own riders in colour over the other panels' riders in faint grey,
+    so riders can be compared within and across groups. Expects rows from core.riders.
     """
     spec = POWER_METRICS[metric]
-    x = [format_duration(d) for d in POWER_DURATIONS]
+    all_riders = [rider for riders in groups.values() for rider in riders]
+    if any(len(riders) > len(CATEGORICAL_PALETTE) for riders in groups.values()):
+        raise ValueError(f"At most {len(CATEGORICAL_PALETTE)} riders per group, split them into more groups or calls.")
 
-    fig = go.Figure()
-    for i, rider in enumerate(riders):
-        fig.add_trace(go.Scatter(
-            x=x,
-            y=[rider[spec["column"](d)] for d in POWER_DURATIONS],
-            name=rider["rider"],
-            mode="lines+markers",
-            line=dict(width=2, color=CATEGORICAL_PALETTE[i % len(CATEGORICAL_PALETTE)]),
-            marker=dict(size=8),
-            hovertemplate=f"<b>{rider['rider']}</b><br>%{{x}}: %{{y:{spec['value_format']}}} {spec['unit']}<extra></extra>",
-        ))
+    def curve(rider):
+        return [rider[spec["column"](d)] for d in POWER_DURATIONS]
 
-    fig.update_xaxes(type="category", title_text="Duration (mm:ss)")
-    fig.update_yaxes(title_text=spec["y_title"])
-    fig.update_layout(title="Power curve", hovermode="x unified")
+    fig, axes = plt.subplots(
+        1, len(groups), sharey=True, squeeze=False,
+        figsize=(5.2 * len(groups) + 0.8, 4.6), facecolor=SURFACE,
+    )
+    for i, (ax, (title, riders)) in enumerate(zip(axes[0], groups.items())):
+        _style_axes(ax, title, spec["y_title"] if i == 0 else None)
+        if len(groups) > 1:
+            for other in (r for r in all_riders if r not in riders):
+                ax.plot(POWER_DURATIONS, curve(other), color=BASELINE, linewidth=1, alpha=0.6, zorder=1)
+        for j, rider in enumerate(riders):
+            ax.plot(
+                POWER_DURATIONS, curve(rider),
+                label=display_name(rider["rider"]),
+                color=CATEGORICAL_PALETTE[j], linewidth=2, zorder=2,
+                marker="o", markersize=5, markeredgecolor=SURFACE, markeredgewidth=1.5,
+            )
+        legend = ax.legend(
+            loc="upper right", frameon=False, fontsize=8.5,
+            handlelength=1.2, labelcolor=TEXT_SECONDARY,
+        )
+        legend.set_zorder(3)
 
-    return figure_payload(fig)
+    fig.tight_layout(w_pad=2)
+    buffer = io.BytesIO()
+    fig.savefig(buffer, format="png", dpi=150, facecolor=SURFACE)
+    plt.close(fig)
+    return buffer.getvalue()

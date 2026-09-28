@@ -8,7 +8,7 @@ IMAGE = (
     .pip_install_from_pyproject(
         PROJECT_ROOT / "pyproject.toml",
     )
-    .add_local_python_source("apps.zwift_ds_mcp")
+    .add_local_python_source("apps.mcp_server")
 )
 
 app = modal.App("zwift-ds-mcp", image=IMAGE)

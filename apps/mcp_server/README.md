@@ -3,7 +3,7 @@
 Enable:
 
 ```
-claude mcp add zwift_ds -- /home/robgri/zwift_ds/.venv/bin/python /home/robgri/zwift_ds/apps/mcp_server/app.py
+claude mcp add zwift_ds -- uv --directory /home/robgri/zwift_ds run python -m apps.mcp_server.app
 ```
 
 Disable:
